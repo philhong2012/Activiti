@@ -39,7 +39,8 @@ public class UserTaskActivityBehavior extends TaskActivityBehavior {
     this.taskDefinition = taskDefinition;
   }
 
-  public void execute(ActivityExecution execution) throws Exception {
+  @Override
+public void execute(ActivityExecution execution) throws Exception {
     TaskEntity task = TaskEntity.createAndInsert(execution);
     task.setExecution(execution);
     task.setTaskDefinition(taskDefinition);
@@ -92,10 +93,16 @@ public class UserTaskActivityBehavior extends TaskActivityBehavior {
     task.fireEvent(TaskListener.EVENTNAME_CREATE);
   }
 
-  public void signal(ActivityExecution execution, String signalName, Object signalData) throws Exception {
+  @Override
+public void signal(ActivityExecution execution, String signalName, Object signalData) throws Exception {
     leave(execution);
   }
 
+  @Override
+public void signal(ActivityExecution execution, String signalName, Object signalData,String destinationTaskKey) throws Exception {
+	    leave(execution,destinationTaskKey);
+  }
+  
   @SuppressWarnings({ "unchecked", "rawtypes" })
   protected void handleAssignments(TaskEntity task, ActivityExecution execution) {
     if (taskDefinition.getAssigneeExpression() != null) {

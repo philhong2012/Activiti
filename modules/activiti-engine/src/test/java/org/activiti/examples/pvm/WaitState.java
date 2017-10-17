@@ -38,6 +38,11 @@ public class WaitState implements SignallableActivityBehavior {
     execution.take(transition);
   }
 
+  @Override
+  public void signal(ActivityExecution execution, String signalEvent, Object signalData, String destinationTaskKey) throws Exception {
+
+  }
+
   protected PvmTransition findTransition(ActivityExecution execution, String signalName) {
     for (PvmTransition transition: execution.getActivity().getOutgoingTransitions()) {
       if (signalName==null) {

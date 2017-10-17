@@ -550,6 +550,17 @@
 
   <repositories>
     <repository>
+      <id>alimaven</id>
+      <name>aliyun maven</name>
+      <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+    </repository>
+    <repository>
+      <id>nexus</id>
+      <name>Human Readable Name for this Mirror.</name>
+      <url>http://192.168.16.37:8081/nexus/content/groups/public/</url>
+    </repository>
+
+    <repository>
       <id>activiti</id>
       <name>Activiti</name>
       <url>https://maven.alfresco.com/nexus/content/repositories/activiti/</url>
@@ -589,6 +600,25 @@
       <url>https://repository.sonatype.org/content/repositories/apache-snapshots</url>
     </pluginRepository>
   </pluginRepositories>
+
+
+  <distributionManagement>
+    <repository>
+      <!--这里面的名字要跟 setting.xml 文件中 servers 里面的一致-->
+      <!--这个是 release 库的发布地址-->
+      <id>releases</id>
+      <name>Nexus Release Repository</name>
+      <url>http://192.168.16.37:8081/nexus/content/repositories/releases/</url>
+    </repository>
+    <snapshotRepository>
+      <!--这里面的名字要跟 setting.xml 文件中 servers 里面的一致-->
+      <!--这个是 snapshot 库的发布地址-->
+      <id>snapshots</id>
+      <name>Nexus Snapshot Repository</name>
+      <url>http://192.168.16.37:8081/nexus/content/repositories/snapshots/</url>
+    </snapshotRepository>
+  </distributionManagement>
+
 
   <build>
     <plugins>
@@ -701,7 +731,7 @@
         <module>modules/activiti-webapp-rest2</module>
         <module>modules/activiti-spring</module>
         <module>modules/activiti-cxf</module>
-        <module>modules/activiti-mule</module>
+
         <module>modules/activiti-camel</module>
         <module>modules/activiti-cdi</module>
         <module>modules/activiti-osgi</module>
@@ -883,7 +913,7 @@
     </profile>
   </profiles>
   
-  <distributionManagement>
+<!--  <distributionManagement>
     <snapshotRepository>
       <id>alfresco.snapshot.repo</id>
       <url>https://maven.alfresco.com/nexus/content/repositories/activiti-snapshots/</url>
@@ -893,7 +923,7 @@
       <id>alfresco.release.repo</id>
       <url>https://artifacts.alfresco.com/nexus/content/repositories/activiti-releases/</url>
     </repository>
-  </distributionManagement>
+  </distributionManagement>-->
 
   <!-- Various information, not used by the build -->
 

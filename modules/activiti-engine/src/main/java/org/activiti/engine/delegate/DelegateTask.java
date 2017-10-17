@@ -16,7 +16,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Set;
 
-import org.activiti.engine.ActivitiException;
 import org.activiti.engine.ActivitiObjectNotFoundException;
 import org.activiti.engine.task.IdentityLink;
 import org.activiti.engine.task.IdentityLinkType;
@@ -155,4 +154,6 @@ public interface DelegateTask extends VariableScope {
    * @return set of {@link IdentityLink}s of type {@link IdentityLinkType#CANDIDATE}.
    */
   Set<IdentityLink> getCandidates();
+  
+  String getDestinationTaskKey();
 }

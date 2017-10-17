@@ -161,15 +161,15 @@
     </profile>
   </profiles>
 
-  <repositories>
-    <repository>
-      <id>buzzmedia</id>
-      <url>http://maven.thebuzzmedia.com</url> <!-- ImageScalr -->
-    </repository>
-    <repository>
-        <id>vaadin-addons</id>
-        <url>http://maven.vaadin.com/vaadin-addons</url>
-    </repository>
-  </repositories>
+  <!-- <repositories>
+<repository>
+   <id>buzzmedia</id>
+   <url>http://maven.thebuzzmedia.com</url> &lt;!&ndash; ImageScalr &ndash;&gt;
+ </repository>
+ <repository>
+     <id>vaadin-addons</id>
+     <url>http://maven.vaadin.com/vaadin-addons</url>
+ </repository>
+</repositories>-->
 
 </project>

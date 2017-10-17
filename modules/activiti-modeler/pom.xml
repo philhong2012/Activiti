@@ -157,15 +157,15 @@
     </profile>
   </profiles>
   
-  <repositories>
+  <!--<repositories>
     <repository>
       <id>buzzmedia</id>
-      <url>http://maven.thebuzzmedia.com</url> <!-- ImageScalr -->
+      <url>http://maven.thebuzzmedia.com</url> &lt;!&ndash; ImageScalr &ndash;&gt;
     </repository>
     <repository>
       <id>Alfresco thirdparty</id>
       <url>https://maven.alfresco.com/nexus/content/repositories/thirdparty/</url>
     </repository>
-  </repositories>
+  </repositories>-->
 
 </project>

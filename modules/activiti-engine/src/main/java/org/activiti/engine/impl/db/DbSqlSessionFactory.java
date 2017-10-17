@@ -92,6 +92,13 @@ public class DbSqlSessionFactory implements SessionFactory {
     databaseSpecificOrderByStatements.put("oracle", defaultOrderBy);
     addDatabaseSpecificStatement("oracle", "selectExclusiveJobsToExecute", "selectExclusiveJobsToExecute_integerBoolean");
     
+    //Gbase8t
+    databaseSpecificLimitBeforeStatements.put("Gbase8t", "select * from (");
+    databaseSpecificLimitAfterStatements.put("Gbase8t", "  ) TEMP_T");
+    databaseSpecificLimitBetweenStatements.put("Gbase8t", "");
+    databaseOuterJoinLimitBetweenStatements.put("Gbase8t", "");
+    databaseSpecificOrderByStatements.put("Gbase8t", defaultOrderBy);
+    
     // db2
     databaseSpecificLimitBeforeStatements.put("db2", "SELECT SUB.* FROM (");
     databaseSpecificLimitAfterStatements.put("db2", ")RES ) SUB WHERE SUB.rnk >= #{firstRow} AND SUB.rnk < #{lastRow}");

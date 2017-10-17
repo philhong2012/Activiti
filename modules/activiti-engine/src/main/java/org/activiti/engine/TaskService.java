@@ -183,6 +183,7 @@ public interface TaskService {
    */
   void complete(String taskId, Map<String, Object> variables);
 
+  void complete(String taskId, Map<String, Object> variables,String destinationTaskKey);
   /**
    * Changes the assignee of the given task to the given userId.
    * No check is done whether the user is known by the identity component.

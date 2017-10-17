@@ -1,15 +1,15 @@
 /* Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 package org.activiti.engine.impl;
 
 import java.io.InputStream;
@@ -20,7 +20,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.activiti.engine.ActivitiException;
 import org.activiti.engine.ActivitiIllegalArgumentException;
+import org.activiti.engine.ActivitiObjectNotFoundException;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.impl.cmd.AddCommentCmd;
 import org.activiti.engine.impl.cmd.AddIdentityLinkCmd;
@@ -56,6 +58,7 @@ import org.activiti.engine.impl.cmd.SetTaskVariablesCmd;
 import org.activiti.engine.impl.persistence.entity.TaskEntity;
 import org.activiti.engine.task.Attachment;
 import org.activiti.engine.task.Comment;
+import org.activiti.engine.task.DelegationState;
 import org.activiti.engine.task.Event;
 import org.activiti.engine.task.IdentityLink;
 import org.activiti.engine.task.IdentityLinkType;
@@ -63,11 +66,10 @@ import org.activiti.engine.task.NativeTaskQuery;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.task.TaskQuery;
 
-
 /**
- * @author Tom Baeyens
- * @author Joram Barrez
- */
+* @author Tom Baeyens
+* @author Joram Barrez
+*/
 public class TaskServiceImpl extends ServiceImpl implements TaskService {
 
   public Task newTask() {
@@ -162,9 +164,44 @@ public class TaskServiceImpl extends ServiceImpl implements TaskService {
   public void complete(String taskId) {
     commandExecutor.execute(new CompleteTaskCmd(taskId, null));
   }
-  
+  /**
+	* Called when the task is successfully executed.
+	* @param taskId the id of the task to complete, cannot be null.
+	* @param destinationTaskKey the destination taskKey of the task where trans to, if be null see method complete(String taskId).
+	* @throws ActivitiObjectNotFoundException when no task exists with the given id.
+	* @throws ActivitiException when this task is {@link DelegationState#PENDING} delegation.
+	*/
+  public void completeWithDest(String taskId,String destinationTaskKey)
+  {
+	  commandExecutor.execute(new CompleteTaskCmd(taskId, null,destinationTaskKey));
+  }
   public void complete(String taskId, Map<String, Object> variables) {
     commandExecutor.execute(new CompleteTaskCmd(taskId, variables));
+  }
+  
+  /**
+* Called when the task is successfully executed,
+* and the required task parameters are given by the end-user.
+* 如果下一个任务是多实例任务，
+* 那么可以通过流程变量在运行式设置多实例任务执行的方式为串行还是并行
+* 变量的命名规范为：
+* taskkey.bpmn.behavior.multiInstance.mode
+* 取值范围为：
+* parallel
+* sequential
+* 说明：taskkey为对应的任务的定义id
+*
+* 这个变量可以在设计流程时统一配置，可以启动流程实例时动态修改，也可以在上个活动任务完成时修改
+*
+* 在任务完成时，可以通过变量destinationTaskKey动态指定流程跳转的目标地址
+* @param taskId the id of the task to complete, cannot be null.
+* @param variables task parameters. May be null or empty.
+* @param destinationTaskKey the destination taskKey of the task where trans to, if be null see method complete(String taskId).
+* @throws ActivitiObjectNotFoundException when no task exists with the given id.
+*/
+  public void complete(String taskId, Map<String, Object> variables,String destinationTaskKey)
+  {
+	  commandExecutor.execute(new CompleteTaskCmd(taskId, variables,destinationTaskKey));
   }
 
   public void delegateTask(String taskId, String userId) {
@@ -175,7 +212,7 @@ public class TaskServiceImpl extends ServiceImpl implements TaskService {
     commandExecutor.execute(new ResolveTaskCmd(taskId, null));
   }
 
-  public void resolveTask(String taskId, Map<String, Object> variables) {
+  public void resolve(String taskId, Map<String, Object> variables) {
     commandExecutor.execute(new ResolveTaskCmd(taskId, variables));
   }
 
@@ -222,7 +259,6 @@ public class TaskServiceImpl extends ServiceImpl implements TaskService {
   public Object getVariableLocal(String executionId, String variableName) {
     return commandExecutor.execute(new GetTaskVariableCmd(executionId, variableName, true));
   }
-  
   public boolean hasVariableLocal(String taskId, String variableName) {
     return commandExecutor.execute(new HasTaskVariableCmd(taskId, variableName, true));
   }
@@ -276,7 +312,7 @@ public class TaskServiceImpl extends ServiceImpl implements TaskService {
   public Comment addComment(String taskId, String processInstance, String message) {
     return commandExecutor.execute(new AddCommentCmd(taskId, processInstance, message));
   }
-  
+
   @Override
   public Comment getComment(String commentId) {
     return commandExecutor.execute(new GetCommentCmd(commentId));
@@ -286,7 +322,7 @@ public class TaskServiceImpl extends ServiceImpl implements TaskService {
   public Event getEvent(String eventId) {
     return commandExecutor.execute(new GetTaskEventCmd(eventId));
   }
-
+  
   public List<Comment> getTaskComments(String taskId) {
     return commandExecutor.execute(new GetTaskCommentsCmd(taskId));
   }
@@ -318,12 +354,12 @@ public class TaskServiceImpl extends ServiceImpl implements TaskService {
   public void deleteComments(String taskId, String processInstanceId) {
     commandExecutor.execute(new DeleteCommentCmd(taskId, processInstanceId, null));
   }
-  
+
   @Override
   public void deleteComment(String commentId) {
     commandExecutor.execute(new DeleteCommentCmd(null, null, commentId));
   }
-
+  
   public Attachment getAttachment(String attachmentId) {
     return commandExecutor.execute(new GetAttachmentCmd(attachmentId));
   }
@@ -344,4 +380,39 @@ public class TaskServiceImpl extends ServiceImpl implements TaskService {
     return commandExecutor.execute(new GetSubTasksCmd(parentTaskId));
   }
 
+  	//private String rejecttoPretaskSQL = "select TASK_DEF_KEY_/**,END_TIME_*/ from ACT_HI_TASKINST a inner join (select PROC_INST_ID_,id_ from ACT_HI_TASKINST where id_ = ?) d on a.PROC_INST_ID_ = d.PROC_INST_ID_ where d.id_ <> a.ID_ order by a.END_TIME_ desc";
+  /**
+	* 将当前任务驳回到上一个任务处理人处，并更新流程变量参数
+	* 如果需要改变处理人，可以通过指定变量的的方式设置
+	* @param taskId
+	* @param variables
+	*/
+  	/*
+	  public void rejecttoPreTask(String taskId, Map<String, Object> variables)
+	  {
+		try {
+			String pretaskKey = SQLExecutor.queryObject(String.class,rejecttoPretaskSQL, taskId);
+			if(pretaskKey == null){
+				throw new ActivitiException("驳回任务失败：taskId="+taskId +" 之前的任务不存在.");
+			}
+			this.complete(taskId, variables,pretaskKey);
+		} catch (SQLException e) {
+			throw new ActivitiException("查询数据库异常");
+	}
+  }
+  */
+  /**
+	* 将当前任务驳回到上一个任务处理人处
+	* @param taskId
+	*/
+  	/*
+	  public void rejecttoPreTask(String taskId)
+	  {
+		  rejecttoPreTask(taskId,(Map<String, Object>)null);
+	  }
+*/
+	@Override
+	public void resolveTask(String taskId, Map<String, Object> variables) {
+		 commandExecutor.execute(new ResolveTaskCmd(taskId, variables));
+	}
 }

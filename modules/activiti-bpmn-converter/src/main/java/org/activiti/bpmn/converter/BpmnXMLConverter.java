@@ -450,7 +450,7 @@ public class BpmnXMLConverter implements BpmnXMLConstants {
       XMLOutputFactory xof = XMLOutputFactory.newInstance();
       OutputStreamWriter out = new OutputStreamWriter(outputStream, encoding);
 
-      XMLStreamWriter writer = xof.createXMLStreamWriter(out);
+      XMLStreamWriter writer = xof.createXMLStreamWriter(outputStream, encoding);
       XMLStreamWriter xtw = new IndentingXMLStreamWriter(writer);
 
       DefinitionsRootExport.writeRootElement(model, xtw, encoding);

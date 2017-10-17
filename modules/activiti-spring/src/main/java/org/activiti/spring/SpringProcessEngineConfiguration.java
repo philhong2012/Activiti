@@ -40,6 +40,7 @@ import org.springframework.core.io.ContextResource;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
 
@@ -66,24 +67,26 @@ public class SpringProcessEngineConfiguration extends ProcessEngineConfiguration
     return processEngine;
   }
   
-  protected Collection< ? extends CommandInterceptor> getDefaultCommandInterceptorsTxRequired() {
+  @Override
+protected Collection< ? extends CommandInterceptor> getDefaultCommandInterceptorsTxRequired() {
     if (transactionManager==null) {
       throw new ActivitiException("transactionManager is required property for SpringProcessEngineConfiguration, use "+StandaloneProcessEngineConfiguration.class.getName()+" otherwise");
     }
     
     List<CommandInterceptor> defaultCommandInterceptorsTxRequired = new ArrayList<CommandInterceptor>();
     defaultCommandInterceptorsTxRequired.add(new LogInterceptor());
-    defaultCommandInterceptorsTxRequired.add(new SpringTransactionInterceptor(transactionManager, TransactionTemplate.PROPAGATION_REQUIRED));
+    defaultCommandInterceptorsTxRequired.add(new SpringTransactionInterceptor(transactionManager, TransactionDefinition.PROPAGATION_REQUIRED));
     CommandContextInterceptor commandContextInterceptor = new CommandContextInterceptor(commandContextFactory, this);
     commandContextInterceptor.setContextReusePossible(true);
     defaultCommandInterceptorsTxRequired.add(commandContextInterceptor);
     return defaultCommandInterceptorsTxRequired;
   }
   
-  protected Collection< ? extends CommandInterceptor> getDefaultCommandInterceptorsTxRequiresNew() {
+  @Override
+protected Collection< ? extends CommandInterceptor> getDefaultCommandInterceptorsTxRequiresNew() {
     List<CommandInterceptor> defaultCommandInterceptorsTxRequiresNew = new ArrayList<CommandInterceptor>();
     defaultCommandInterceptorsTxRequiresNew.add(new LogInterceptor());
-    defaultCommandInterceptorsTxRequiresNew.add(new SpringTransactionInterceptor(transactionManager, TransactionTemplate.PROPAGATION_REQUIRES_NEW));
+    defaultCommandInterceptorsTxRequiresNew.add(new SpringTransactionInterceptor(transactionManager, TransactionDefinition.PROPAGATION_REQUIRES_NEW));
     CommandContextInterceptor commandContextInterceptor = new CommandContextInterceptor(commandContextFactory, this);
     commandContextInterceptor.setContextReusePossible(false);
     defaultCommandInterceptorsTxRequiresNew.add(commandContextInterceptor);

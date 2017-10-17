@@ -161,6 +161,111 @@ public class TaskEntity extends VariableScopeImpl implements Task, DelegateTask,
     }
   }
   
+  /**
+   * 任务完成时特定的跳转目标地址
+   */
+  private String destinationTaskKey;
+  public void complete(String destinationTaskKey ) {
+	this.destinationTaskKey = destinationTaskKey;
+    fireEvent(TaskListener.EVENTNAME_COMPLETE);
+
+    if (Authentication.getAuthenticatedUserId() != null && processInstanceId != null) {
+      getProcessInstance().involveUser(Authentication.getAuthenticatedUserId(), IdentityLinkType.PARTICIPANT);
+    }
+    ExecutionEntity execution = null;
+    /**
+     * 什么情况下executionId为null？
+     */
+    if (executionId!=null) 
+        execution = getExecution();
+    boolean customDTask = (destinationTaskKey != null && !destinationTaskKey.equals(""));
+    String dtaskName = null;
+    try
+    {
+    	dtaskName = customDTask && execution != null ?(String)execution.getActivity().getProcessDefinition().findActivity(destinationTaskKey).getProperty("name"):null;
+    }
+    catch(Exception e)
+    {
+//    	e.printStackTrace();
+    }
+    String deleteReason = null;
+    if(!customDTask)
+	{
+    	deleteReason = TaskEntity.DELETE_REASON_COMPLETED; 
+	}
+    else
+    {
+    	if(dtaskName != null)
+    	{
+    		deleteReason = "转到节点["+dtaskName + "-" + destinationTaskKey + "]";//转到即自由跳转的意思
+    	}
+    	else
+    	{
+    		deleteReason = "转到节点[" + destinationTaskKey + "]";//转到即自由跳转的意思
+    	}
+    }
+    if(this.assignee != null && !this.assignee.equals(""))
+    {
+    	String userName = null;
+    	try
+    	{
+    		userName = "";
+    	}
+    	catch(Exception e)
+    	{
+//    		e.printStackTrace();
+    	}
+    	
+    	if(userName == null)
+    	{
+    		userName = assignee;
+    	}
+    	if(!userName.equals(assignee))
+    		userName = userName + "-" + this.assignee; 
+		deleteReason = "任务被[" + userName + "]" +deleteReason;
+    }
+    
+    if(this.taskDefinitionKey != null)
+    {
+    	String taskName = null;
+    	if(execution != null)
+    	{
+    		
+	    	taskName = (String)execution.getActivity().getProperty("name");
+	    	
+    	}
+    	if(taskName != null)
+    	{
+    		deleteReason = "[" +taskName +"-"+ this.taskDefinitionKey+ "]" +deleteReason;
+    	}
+    	else
+    	{
+    		deleteReason = "["+this.taskDefinitionKey+ "]" +deleteReason;
+    	}
+    }
+    Context
+      .getCommandContext()
+      .getTaskEntityManager()
+      .deleteTask(this, deleteReason, false);
+    
+    if (execution!=null) {
+//      execution = getExecution();
+      if(customDTask)
+      {
+    	  execution.setDeleteReason(deleteReason);
+      }
+      execution.removeTask(this);
+//      execution.signal(null, null);
+      if(destinationTaskKey == null || "".equals(destinationTaskKey))
+      {
+    	  execution.signal(null, null);
+      }
+      else
+      {
+    	  execution.signal(null, null,destinationTaskKey);
+      }
+    }
+  }
   public void delegate(String userId) {
     setDelegationState(DelegationState.PENDING);
     if (getOwner() == null) {
@@ -379,7 +484,8 @@ public class TaskEntity extends VariableScopeImpl implements Task, DelegateTask,
     }
   }
   
-  public String toString() {
+  @Override
+public String toString() {
     return "Task[id=" + id + ", name=" + name + "]";
   }
   
@@ -532,7 +638,7 @@ public class TaskEntity extends VariableScopeImpl implements Task, DelegateTask,
           try {
             Context.getProcessEngineConfiguration()
               .getDelegateInterceptor()
-              .handleInvocation(new TaskListenerInvocation(taskListener, (DelegateTask)this));
+              .handleInvocation(new TaskListenerInvocation(taskListener, this));
           }catch (Exception e) {
             throw new ActivitiException("Exception while invoking TaskListener: "+e.getMessage(), e);
           }
@@ -676,7 +782,7 @@ public class TaskEntity extends VariableScopeImpl implements Task, DelegateTask,
     return (delegationState!=null ? delegationState.toString() : null);
   }
   public void setDelegationStateString(String delegationStateString) {
-    this.delegationState = (delegationStateString!=null ? DelegationState.valueOf(DelegationState.class, delegationStateString) : null);
+    this.delegationState = (delegationStateString!=null ? Enum.valueOf(DelegationState.class, delegationStateString) : null);
   }
   public boolean isDeleted() {
     return isDeleted;
@@ -728,4 +834,10 @@ public class TaskEntity extends VariableScopeImpl implements Task, DelegateTask,
   public void setQueryVariables(List<VariableInstanceEntity> queryVariables) {
     this.queryVariables = queryVariables;
   }
+
+@Override
+public String getDestinationTaskKey() {
+	// TODO Auto-generated method stub
+	return null;
+}
 }
