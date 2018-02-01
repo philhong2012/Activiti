@@ -134,6 +134,14 @@
         <version>0.10.0</version>
         <scope>compile</scope>
      </dependency>
+    <dependency>
+      <groupId>org.activiti</groupId>
+      <artifactId>activiti-common-rest</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.activiti</groupId>
+      <artifactId>activiti-modeler</artifactId>
+    </dependency>
 
   </dependencies>
   
